@@ -4,6 +4,8 @@ import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { WorkoutCard } from '../components/dashboard/WorkoutCard';
 import { WorkoutForm } from '../components/dashboard/WorkoutForm';
+import { TemplateWorkouts } from '../components/dashboard/TemplateWorkouts';
+import { WorkoutTabs } from '../components/dashboard/WorkoutTabs';
 import { Workout } from '../types/workout';
 import { db } from '../lib/db';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,11 +14,14 @@ import { DashboardLayout } from '../components/layout/DashboardLayout';
 export const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [templateWorkouts, setTemplateWorkouts] = useState<Workout[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
+  const [activeTab, setActiveTab] = useState<'workouts' | 'templates'>('workouts');
 
   useEffect(() => {
     loadWorkouts();
+    loadTemplates();
   }, [user]);
 
   const loadWorkouts = async () => {
@@ -24,6 +29,12 @@ export const Dashboard: React.FC = () => {
     const database = await db;
     const userWorkouts = await database.getAll('workouts') || [];
     setWorkouts(userWorkouts.filter(workout => workout.userId === user.id));
+  };
+
+  const loadTemplates = async () => {
+    const database = await db;
+    const allWorkouts = await database.getAll('workouts') || [];
+    setTemplateWorkouts(allWorkouts.filter(workout => workout.userId === 'template'));
   };
 
   const handleCreateWorkout = async (workoutData: Omit<Workout, 'id' | 'userId'>) => {
@@ -50,6 +61,17 @@ export const Dashboard: React.FC = () => {
     await database.put('workouts', updatedWorkout);
     setWorkouts(workouts.map(w => w.id === editingWorkout.id ? updatedWorkout : w));
     setEditingWorkout(null);
+  };
+
+  const handleUseTemplate = (template: Workout) => {
+    setShowForm(true);
+    const templateData: Omit<Workout, 'id' | 'userId'> = {
+      name: `${template.name} (Copy)`,
+      date: new Date().toISOString().split('T')[0],
+      duration: template.duration,
+      exercises: template.exercises,
+    };
+    handleCreateWorkout(templateData);
   };
 
   const handleDuplicateWorkout = async (workout: Workout) => {
@@ -84,6 +106,8 @@ export const Dashboard: React.FC = () => {
             </Button>
           </div>
 
+          <WorkoutTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
           {(showForm || editingWorkout) && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
               <div className="bg-background p-6 rounded-lg w-full max-w-2xl my-8">
@@ -102,22 +126,28 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workouts.map(workout => (
-              <WorkoutCard
-                key={workout.id}
-                workout={workout}
-                onEdit={setEditingWorkout}
-                onDelete={handleDeleteWorkout}
-                onDuplicate={handleDuplicateWorkout}
-              />
-            ))}
-          </div>
-
-          {workouts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-400">No workouts yet. Create your first workout to get started!</p>
+          {activeTab === 'workouts' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {workouts.map(workout => (
+                <WorkoutCard
+                  key={workout.id}
+                  workout={workout}
+                  onEdit={setEditingWorkout}
+                  onDelete={handleDeleteWorkout}
+                  onDuplicate={handleDuplicateWorkout}
+                />
+              ))}
+              {workouts.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-400">No workouts yet. Create your first workout or use a template to get started!</p>
+                </div>
+              )}
             </div>
+          ) : (
+            <TemplateWorkouts
+              templates={templateWorkouts}
+              onUseTemplate={handleUseTemplate}
+            />
           )}
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Fish, Dumbbell, Users, Laptop } from 'lucide-react';
+import { Users, Laptop } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const Landing: React.FC = () => {
@@ -9,7 +9,11 @@ export const Landing: React.FC = () => {
       <div className="container mx-auto px-4">
         {/* Hero Section */}
         <div className="flex flex-col items-center justify-center min-h-screen text-center">
-          <Fish className="w-20 h-20 text-[#FF6B35] mb-6" />
+          <img 
+            src="https://www.svgrepo.com/show/323318/sperm-whale.svg" 
+            alt="Whale Logo" 
+            className="w-20 h-20 text-[#FF6B35] mb-6"
+          />
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Picard's Workout Tracker
           </h1>
@@ -32,7 +36,11 @@ export const Landing: React.FC = () => {
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-[#2A2A2A] p-6 rounded-lg">
-              <Dumbbell className="w-12 h-12 text-[#FF6B35] mb-4" />
+              <img 
+                src="https://www.svgrepo.com/show/323318/sperm-whale.svg" 
+                alt="Whale Logo" 
+                className="w-12 h-12 text-[#FF6B35] mb-4"
+              />
               <h3 className="text-xl font-bold mb-2">Workout Tracking</h3>
               <p className="text-gray-400">
                 Log your exercises, sets, and reps with our intuitive interface.
