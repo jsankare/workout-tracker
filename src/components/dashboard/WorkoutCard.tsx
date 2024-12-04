@@ -1,36 +1,41 @@
 import React from 'react';
-import { MoreVertical, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Scale, Hash, Pencil, Trash2, Copy } from 'lucide-react';
 import { Workout } from '../../types/workout';
 
 interface WorkoutCardProps {
   workout: Workout;
   onEdit: (workout: Workout) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (workout: Workout) => void;
 }
 
-export const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onEdit, onDelete }) => {
+export const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onEdit, onDelete, onDuplicate }) => {
   return (
     <div className="bg-surface p-4 rounded-lg">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-semibold text-white">{workout.name}</h3>
-        <div className="relative group">
-          <button className="p-1 hover:bg-surface-light rounded">
-            <MoreVertical className="w-5 h-5 text-gray-400" />
+        <div className="flex gap-2">
+          <button
+            onClick={() => onDuplicate(workout)}
+            className="p-1.5 hover:bg-surface-light rounded-full text-gray-400 hover:text-primary transition-colors"
+            title="Duplicate workout"
+          >
+            <Copy className="w-4 h-4" />
           </button>
-          <div className="hidden group-hover:block absolute right-0 mt-2 w-48 bg-surface rounded-md shadow-lg z-10">
-            <button
-              onClick={() => onEdit(workout)}
-              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-surface-light"
-            >
-              Edit Workout
-            </button>
-            <button
-              onClick={() => onDelete(workout.id)}
-              className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-light"
-            >
-              Delete Workout
-            </button>
-          </div>
+          <button
+            onClick={() => onEdit(workout)}
+            className="p-1.5 hover:bg-surface-light rounded-full text-gray-400 hover:text-primary transition-colors"
+            title="Edit workout"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(workout.id)}
+            className="p-1.5 hover:bg-surface-light rounded-full text-gray-400 hover:text-red-400 transition-colors"
+            title="Delete workout"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
       <div className="space-y-2">
@@ -45,10 +50,33 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onEdit, onDel
       </div>
       <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-300 mb-2">Exercises:</h4>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {workout.exercises.map((exercise, index) => (
             <li key={index} className="text-gray-400 text-sm">
-              {exercise.name} - {exercise.sets} sets × {exercise.reps} reps
+              <div className="flex flex-col space-y-1">
+                <span className="font-medium text-white">{exercise.name}</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center">
+                    <Hash className="w-4 h-4 mr-1" />
+                    {exercise.sets} sets
+                  </div>
+                  {exercise.reps && (
+                    <div className="flex items-center">
+                      <Hash className="w-4 h-4 mr-1" />
+                      {exercise.reps} reps
+                    </div>
+                  )}
+                  {exercise.weight && (
+                    <div className="flex items-center">
+                      <Scale className="w-4 h-4 mr-1" />
+                      {exercise.weight} kg
+                    </div>
+                  )}
+                </div>
+                {exercise.notes && (
+                  <span className="text-xs text-gray-500">{exercise.notes}</span>
+                )}
+              </div>
             </li>
           ))}
         </ul>

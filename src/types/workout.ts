@@ -1,13 +1,18 @@
-export interface Exercise {
+export interface WorkoutExercise {
+  exerciseId: string;
   name: string;
   sets: number;
-  reps: number;
+  reps?: number;
+  weight?: number;
+  duration?: number;
+  notes?: string;
 }
 
 export interface Workout {
   id: string;
+  userId: string;
   name: string;
   date: string;
   duration: number;
-  exercises: Exercise[];
+  exercises: WorkoutExercise[];
 }

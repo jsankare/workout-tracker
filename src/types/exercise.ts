@@ -37,4 +37,5 @@ export interface Exercise {
   muscles: Muscle[];
   description?: string;
   instructions?: string;
+  caloriesPerMinute?: number;
 }

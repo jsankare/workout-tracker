@@ -1,4 +1,6 @@
 import { openDB, DBSchema } from 'idb';
+import { initializeDefaultExercises } from '../utils/defaultExercises';
+import { initializeDefaultWorkouts } from '../utils/defaultWorkouts';
 
 interface WorkoutDB extends DBSchema {
   users: {
@@ -30,9 +32,13 @@ interface WorkoutDB extends DBSchema {
       date: string;
       duration: number;
       exercises: Array<{
+        exerciseId: string;
         name: string;
         sets: number;
-        reps: number;
+        reps?: number;
+        weight?: number;
+        duration?: number;
+        notes?: string;
       }>;
     };
   };
@@ -46,6 +52,7 @@ interface WorkoutDB extends DBSchema {
       muscles: string[];
       description?: string;
       instructions?: string;
+      caloriesPerMinute?: number;
     };
   };
 }
@@ -68,6 +75,11 @@ export const initDB = async () => {
       }
     },
   });
+
+  // Initialize default data
+  await initializeDefaultExercises(db);
+  await initializeDefaultWorkouts(db);
+
   return db;
 };
 

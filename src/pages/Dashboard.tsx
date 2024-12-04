@@ -26,7 +26,7 @@ export const Dashboard: React.FC = () => {
     setWorkouts(userWorkouts.filter(workout => workout.userId === user.id));
   };
 
-  const handleCreateWorkout = async (workoutData: Omit<Workout, 'id'>) => {
+  const handleCreateWorkout = async (workoutData: Omit<Workout, 'id' | 'userId'>) => {
     if (!user) return;
     const database = await db;
     const workout = {
@@ -39,7 +39,7 @@ export const Dashboard: React.FC = () => {
     setShowForm(false);
   };
 
-  const handleEditWorkout = async (workoutData: Omit<Workout, 'id'>) => {
+  const handleEditWorkout = async (workoutData: Omit<Workout, 'id' | 'userId'>) => {
     if (!editingWorkout || !user) return;
     const database = await db;
     const updatedWorkout = {
@@ -50,6 +50,20 @@ export const Dashboard: React.FC = () => {
     await database.put('workouts', updatedWorkout);
     setWorkouts(workouts.map(w => w.id === editingWorkout.id ? updatedWorkout : w));
     setEditingWorkout(null);
+  };
+
+  const handleDuplicateWorkout = async (workout: Workout) => {
+    if (!user) return;
+    const database = await db;
+    const duplicatedWorkout = {
+      ...workout,
+      id: uuidv4(),
+      userId: user.id,
+      name: `${workout.name} (Copy)`,
+      date: new Date().toISOString().split('T')[0],
+    };
+    await database.add('workouts', duplicatedWorkout);
+    setWorkouts([...workouts, duplicatedWorkout]);
   };
 
   const handleDeleteWorkout = async (id: string) => {
@@ -71,8 +85,8 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {(showForm || editingWorkout) && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-background p-6 rounded-lg w-full max-w-2xl">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+              <div className="bg-background p-6 rounded-lg w-full max-w-2xl my-8">
                 <h2 className="text-2xl font-bold text-white mb-6">
                   {editingWorkout ? 'Edit Workout' : 'Create New Workout'}
                 </h2>
@@ -95,6 +109,7 @@ export const Dashboard: React.FC = () => {
                 workout={workout}
                 onEdit={setEditingWorkout}
                 onDelete={handleDeleteWorkout}
+                onDuplicate={handleDuplicateWorkout}
               />
             ))}
           </div>
