@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { WorkoutCard } from '../components/dashboard/WorkoutCard';
 import { WorkoutForm } from '../components/dashboard/WorkoutForm';
-import { TemplateWorkouts } from '../components/dashboard/TemplateWorkouts';
 import { WorkoutTabs } from '../components/dashboard/WorkoutTabs';
 import { Workout } from '../types/workout';
 import { db } from '../lib/db';
@@ -18,11 +17,24 @@ export const Dashboard: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [activeTab, setActiveTab] = useState<'workouts' | 'templates'>('workouts');
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
 
   useEffect(() => {
     loadWorkouts();
     loadTemplates();
   }, [user]);
+
+  useEffect(() => {
+    if (showForm || editingWorkout) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showForm, editingWorkout]);
 
   const loadWorkouts = async () => {
     if (!user) return;
@@ -43,23 +55,36 @@ export const Dashboard: React.FC = () => {
     const workout = {
       ...workoutData,
       id: uuidv4(),
-      userId: user.id,
+      userId: isCreatingTemplate ? 'template' : user.id,
     };
     await database.add('workouts', workout);
-    setWorkouts([...workouts, workout]);
+    
+    if (isCreatingTemplate) {
+      setTemplateWorkouts([...templateWorkouts, workout]);
+    } else {
+      setWorkouts([...workouts, workout]);
+    }
+    
     setShowForm(false);
+    setIsCreatingTemplate(false);
   };
 
   const handleEditWorkout = async (workoutData: Omit<Workout, 'id' | 'userId'>) => {
-    if (!editingWorkout || !user) return;
+    if (!editingWorkout) return;
     const database = await db;
     const updatedWorkout = {
       ...workoutData,
       id: editingWorkout.id,
-      userId: user.id,
+      userId: editingWorkout.userId,
     };
     await database.put('workouts', updatedWorkout);
-    setWorkouts(workouts.map(w => w.id === editingWorkout.id ? updatedWorkout : w));
+    
+    if (editingWorkout.userId === 'template') {
+      setTemplateWorkouts(templateWorkouts.map(w => w.id === editingWorkout.id ? updatedWorkout : w));
+    } else {
+      setWorkouts(workouts.map(w => w.id === editingWorkout.id ? updatedWorkout : w));
+    }
+    
     setEditingWorkout(null);
   };
 
@@ -80,18 +105,35 @@ export const Dashboard: React.FC = () => {
     const duplicatedWorkout = {
       ...workout,
       id: uuidv4(),
-      userId: user.id,
+      userId: workout.userId,
       name: `${workout.name} (Copy)`,
       date: new Date().toISOString().split('T')[0],
     };
     await database.add('workouts', duplicatedWorkout);
-    setWorkouts([...workouts, duplicatedWorkout]);
+    
+    if (workout.userId === 'template') {
+      setTemplateWorkouts([...templateWorkouts, duplicatedWorkout]);
+    } else {
+      setWorkouts([...workouts, duplicatedWorkout]);
+    }
   };
 
   const handleDeleteWorkout = async (id: string) => {
     const database = await db;
     await database.delete('workouts', id);
-    setWorkouts(workouts.filter(w => w.id !== id));
+    
+    const workoutToDelete = [...workouts, ...templateWorkouts].find(w => w.id === id);
+    if (workoutToDelete?.userId === 'template') {
+      setTemplateWorkouts(templateWorkouts.filter(w => w.id !== id));
+    } else {
+      setWorkouts(workouts.filter(w => w.id !== id));
+    }
+  };
+
+  const closeModal = () => {
+    setShowForm(false);
+    setEditingWorkout(null);
+    setIsCreatingTemplate(false);
   };
 
   return (
@@ -100,28 +142,52 @@ export const Dashboard: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-white">Workouts</h1>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="w-5 h-5 mr-2" />
-              New Workout
-            </Button>
+            <div className="flex gap-4">
+              {activeTab === 'templates' && (
+                <Button 
+                  onClick={() => {
+                    setIsCreatingTemplate(true);
+                    setShowForm(true);
+                  }}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  New Template
+                </Button>
+              )}
+              {activeTab === 'workouts' && (
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="w-5 h-5 mr-2" />
+                  New Workout
+                </Button>
+              )}
+            </div>
           </div>
 
           <WorkoutTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {(showForm || editingWorkout) && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-              <div className="bg-background p-6 rounded-lg w-full max-w-2xl my-8">
-                <h2 className="text-2xl font-bold text-white mb-6">
-                  {editingWorkout ? 'Edit Workout' : 'Create New Workout'}
-                </h2>
-                <WorkoutForm
-                  onSubmit={editingWorkout ? handleEditWorkout : handleCreateWorkout}
-                  onCancel={() => {
-                    setShowForm(false);
-                    setEditingWorkout(null);
-                  }}
-                  initialWorkout={editingWorkout || undefined}
-                />
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+              <div className="min-h-screen px-4 text-center">
+                <div className="fixed inset-0" onClick={closeModal} />
+                <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
+                <div className="inline-block w-full max-w-2xl p-6 my-8 text-left align-middle bg-background rounded-lg shadow-xl relative">
+                  <div className="absolute top-4 right-4">
+                    <button
+                      onClick={closeModal}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-6">
+                    {editingWorkout ? 'Edit Workout' : isCreatingTemplate ? 'Create New Template' : 'Create New Workout'}
+                  </h2>
+                  <WorkoutForm
+                    onSubmit={editingWorkout ? handleEditWorkout : handleCreateWorkout}
+                    onCancel={closeModal}
+                    initialWorkout={editingWorkout || undefined}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -144,10 +210,23 @@ export const Dashboard: React.FC = () => {
               )}
             </div>
           ) : (
-            <TemplateWorkouts
-              templates={templateWorkouts}
-              onUseTemplate={handleUseTemplate}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templateWorkouts.map(template => (
+                <WorkoutCard
+                  key={template.id}
+                  workout={template}
+                  onEdit={setEditingWorkout}
+                  onDelete={handleDeleteWorkout}
+                  onDuplicate={handleDuplicateWorkout}
+                  onUseTemplate={handleUseTemplate}
+                />
+              ))}
+              {templateWorkouts.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-400">No templates yet. Create your first template workout!</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
