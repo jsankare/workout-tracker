@@ -6,7 +6,7 @@ import { useExerciseStore } from '@/lib/hooks/use-exercise-store';
 import { Button } from '@/components/ui/button';
 import { ExerciseList } from '@/components/exercises/exercise-list';
 import { ExerciseDialog } from '@/components/exercises/exercise-dialog';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ExercisesPage() {
   const { exercises, fetchExercises, loading } = useExerciseStore();

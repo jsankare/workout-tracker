@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { useExerciseStore } from '@/lib/hooks/use-exercise-store';
 import { EXERCISE_TYPES, MUSCLE_GROUPS, SPECIFIC_MUSCLES } from '@/lib/constants';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const exerciseSchema = z.object({
   name: z.string().min(1, 'Name is required'),
