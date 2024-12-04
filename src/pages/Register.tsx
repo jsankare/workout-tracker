@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const setAuth = useAuthStore((state) => state);
+  const { setAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({

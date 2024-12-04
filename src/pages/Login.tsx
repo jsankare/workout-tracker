@@ -9,7 +9,7 @@ import { useAuthStore } from '../store/authStore';
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const setAuth = useAuthStore((state) => state);
+  const { setAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({

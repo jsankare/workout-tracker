@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './db';
 import { LoginCredentials, RegisterCredentials, User } from '../types/auth';
+import { hashPassword, comparePasswords } from '../utils/crypto';
 
 export class AuthError extends Error {
   constructor(message: string) {
@@ -32,14 +33,24 @@ export const register = async (credentials: RegisterCredentials): Promise<User> 
     throw new AuthError('Passwords do not match');
   }
 
-  const user: User = {
+  const existingUser = await database.get('users', credentials.email);
+  if (existingUser) {
+    throw new AuthError('User already exists');
+  }
+
+  const hashedPassword = await hashPassword(credentials.password);
+
+  const user = {
     id: uuidv4(),
     email: credentials.email,
     name: credentials.name,
+    password: hashedPassword,
   };
 
-  await database.add('users', user);
-  return user;
+  await database.put('users', user);
+
+  const { password, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 };
 
 export const login = async (credentials: LoginCredentials): Promise<{ user: User; token: string }> => {
@@ -55,13 +66,19 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
     throw new AuthError('Invalid credentials');
   }
 
+  const isValidPassword = await comparePasswords(credentials.password, user.password);
+  if (!isValidPassword) {
+    throw new AuthError('Invalid credentials');
+  }
+
   const token = uuidv4();
   const expiresAt = Date.now() + (credentials.remember ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000);
   
-  await database.add('sessions', {
+  await database.put('sessions', {
     token,
     expiresAt,
   });
 
-  return { user, token };
+  const { password, ...userWithoutPassword } = user;
+  return { user: userWithoutPassword, token };
 };
