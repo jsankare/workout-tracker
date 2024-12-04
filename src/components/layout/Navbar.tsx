@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Dumbbell, BarChart2, User, LogOut } from 'lucide-react';
+import { Dumbbell, BarChart2, User, LogOut, Dumbbell as ExerciseIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 export const Navbar: React.FC = () => {
@@ -8,6 +8,7 @@ export const Navbar: React.FC = () => {
 
   const navItems = [
     { to: '/dashboard', icon: Dumbbell, label: 'Workouts' },
+    { to: '/exercises', icon: ExerciseIcon, label: 'Exercises' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
     { to: '/profile', icon: User, label: 'Profile' },
   ];

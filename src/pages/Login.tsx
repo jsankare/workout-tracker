@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { PasswordInput } from '../components/ui/PasswordInput';
 import { login } from '../lib/auth';
 import { useAuthStore } from '../store/authStore';
 
@@ -48,9 +49,8 @@ export const Login: React.FC = () => {
           required
         />
         
-        <Input
+        <PasswordInput
           label="Password"
-          type="password"
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
           placeholder="Enter your password"

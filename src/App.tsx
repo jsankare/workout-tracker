@@ -6,6 +6,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Stats } from './pages/Stats';
 import { Profile } from './pages/Profile';
+import { Exercises } from './pages/Exercises';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 export const App: React.FC = () => {
@@ -20,6 +21,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exercises"
+          element={
+            <ProtectedRoute>
+              <Exercises />
             </ProtectedRoute>
           }
         />
