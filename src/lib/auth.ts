@@ -76,9 +76,17 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
   
   await database.put('sessions', {
     token,
+    userId: user.id,
     expiresAt,
   });
 
   const { password, ...userWithoutPassword } = user;
-  return { user: userWithoutPassword, token };
+  return { 
+    user: {
+      id: userWithoutPassword.id,
+      email: userWithoutPassword.email,
+      name: userWithoutPassword.name,
+    }, 
+    token 
+  };
 };

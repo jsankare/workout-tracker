@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { useWorkoutStats } from '../hooks/useWorkoutStats';
 import { WorkoutChart } from '../components/stats/WorkoutChart';
 import { WeightChart } from '../components/stats/WeightChart';
+import { Button } from '../components/ui/Button';
 import { 
   Activity, 
   Calendar, 
@@ -11,14 +12,18 @@ import {
   Flame, 
   Scale, 
   TrendingUp, 
-  Timer 
+  Timer,
+  AlertTriangle
 } from 'lucide-react';
 import { db } from '../lib/db';
 import { Workout } from '../types/workout';
+import { useAuthStore } from '../store/authStore';
 
 export const Stats: React.FC = () => {
   const stats = useWorkoutStats();
   const [workouts, setWorkouts] = React.useState<Workout[]>([]);
+  const { user } = useAuthStore();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   React.useEffect(() => {
     const loadWorkouts = async () => {
@@ -28,6 +33,30 @@ export const Stats: React.FC = () => {
     };
     loadWorkouts();
   }, []);
+
+  const handleResetProgress = async () => {
+    if (!user) return;
+    
+    const database = await db;
+    const allWorkouts = await database.getAll('workouts');
+    
+    // Delete all user workouts but keep templates
+    for (const workout of allWorkouts) {
+      if (workout.userId === user.id) {
+        await database.delete('workouts', workout.id);
+      }
+    }
+
+    // Reset user's weight history
+    const updatedUser = {
+      ...user,
+      weightHistory: [],
+    };
+    await database.put('users', updatedUser);
+
+    // Refresh the page to update all stats
+    window.location.reload();
+  };
 
   const statCards = [
     { 
@@ -83,8 +112,46 @@ export const Stats: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="p-8">
-        <h1 className="text-3xl font-bold text-white mb-8">Workout Statistics</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-white">Workout Statistics</h1>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowResetConfirm(true)}
+            className="text-red-400 border-red-400 hover:bg-red-400/10"
+          >
+            Reset Progress
+          </Button>
+        </div>
         
+        {showResetConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background p-6 rounded-lg max-w-md w-full">
+              <div className="flex items-center mb-4 text-red-400">
+                <AlertTriangle className="w-6 h-6 mr-2" />
+                <h2 className="text-xl font-bold">Reset Progress</h2>
+              </div>
+              <p className="text-gray-400 mb-6">
+                This will permanently delete all your workout history and progress. This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowResetConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-red-400 border-red-400 hover:bg-red-400/10"
+                  onClick={handleResetProgress}
+                >
+                  Reset Everything
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statCards.map((stat, index) => {
             const Icon = stat.icon;

@@ -29,7 +29,6 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
             placeholder="Search exercises..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
             icon={<Search className="w-5 h-5" />}
           />
         </div>
