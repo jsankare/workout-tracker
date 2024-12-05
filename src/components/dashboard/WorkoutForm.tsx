@@ -33,7 +33,14 @@ export const WorkoutForm: React.FC<WorkoutFormProps> = ({
     const loadExercises = async () => {
       const database = await db;
       const exercises = await database.getAll('exercises') || [];
-      setAvailableExercises(exercises);
+      // Ensure the exercises from DB match the Exercise type
+      const typedExercises: Exercise[] = exercises.map(exercise => ({
+        ...exercise,
+        type: exercise.type as Exercise['type'],
+        muscleGroups: exercise.muscleGroups as Exercise['muscleGroups'],
+        muscles: exercise.muscles as Exercise['muscles']
+      }));
+      setAvailableExercises(typedExercises);
     };
     loadExercises();
   }, []);

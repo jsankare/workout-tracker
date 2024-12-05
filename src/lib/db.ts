@@ -20,6 +20,7 @@ interface WorkoutDB extends DBSchema {
     key: string;
     value: {
       token: string;
+      userId: string;
       expiresAt: number;
     };
   };

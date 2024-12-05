@@ -82,11 +82,13 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
 
   const { password, ...userWithoutPassword } = user;
   return { 
-    user: {
-      id: userWithoutPassword.id,
-      email: userWithoutPassword.email,
-      name: userWithoutPassword.name,
-    }, 
+    user: userWithoutPassword, 
     token 
   };
+};
+
+export const verifyEmail = async (token: string): Promise<void> => {
+  // Implementation for email verification would go here
+  // This is a placeholder since the current implementation doesn't use email verification
+  throw new Error('Email verification not implemented');
 };
