@@ -1,19 +1,15 @@
 import { openDB, DBSchema } from 'idb';
+import { Exercise, ExerciseType, MuscleGroup, Muscle } from '../types/exercise';
+import { Workout } from '../types/workout';
+import { User } from '../types/auth';
 import { initializeDefaultExercises } from '../utils/defaultExercises';
 import { initializeDefaultWorkouts } from '../utils/defaultWorkouts';
 
 interface WorkoutDB extends DBSchema {
   users: {
     key: string;
-    value: {
-      id: string;
-      email: string;
-      name: string;
+    value: User & {
       password: string;
-      height?: number;
-      weight?: number;
-      age?: number;
-      gender?: 'male' | 'female';
     };
   };
   sessions: {
@@ -26,35 +22,11 @@ interface WorkoutDB extends DBSchema {
   };
   workouts: {
     key: string;
-    value: {
-      id: string;
-      userId: string;
-      name: string;
-      date: string;
-      duration: number;
-      exercises: Array<{
-        exerciseId: string;
-        name: string;
-        sets: number;
-        reps?: number;
-        weight?: number;
-        duration?: number;
-        notes?: string;
-      }>;
-    };
+    value: Workout;
   };
   exercises: {
     key: string;
-    value: {
-      id: string;
-      name: string;
-      type: string;
-      muscleGroups: string[];
-      muscles: string[];
-      description?: string;
-      instructions?: string;
-      caloriesPerMinute?: number;
-    };
+    value: Exercise;
   };
 }
 

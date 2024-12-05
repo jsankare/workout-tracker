@@ -1,3 +1,5 @@
+import { Gender } from './user';
+
 export interface User {
   id: string;
   email: string;
@@ -5,7 +7,7 @@ export interface User {
   weight?: number;
   height?: number;
   age?: number;
-  gender?: 'male' | 'female';
+  gender?: Gender;
 }
 
 export interface AuthState {

@@ -8,17 +8,30 @@ import { db } from '../lib/db';
 import { hashPassword } from '../utils/crypto';
 import { HealthMetricsDisplay } from '../components/profile/HealthMetrics';
 import { calculateBMI, getBMICategory, calculateBMR, calculateIdealWeight } from '../utils/health';
+import { Gender } from '../types/user';
+
+interface FormData {
+  name: string;
+  email: string;
+  height: string | number;
+  weight: string | number;
+  age: string | number;
+  gender: Gender;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 
 export const Profile: React.FC = () => {
   const { user, setAuth } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: user?.name || '',
     email: user?.email || '',
     height: user?.height || '',
     weight: user?.weight || '',
     age: user?.age || '',
-    gender: user?.gender || 'male',
+    gender: user?.gender || Gender.MALE,
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -29,8 +42,8 @@ export const Profile: React.FC = () => {
   const healthMetrics = formData.height && formData.weight && formData.age ? {
     bmi: calculateBMI(Number(formData.weight), Number(formData.height)),
     bmiCategory: getBMICategory(calculateBMI(Number(formData.weight), Number(formData.height))),
-    bmr: calculateBMR(Number(formData.weight), Number(formData.height), Number(formData.age), formData.gender === 'male'),
-    idealWeight: calculateIdealWeight(Number(formData.height), formData.gender === 'male'),
+    bmr: calculateBMR(Number(formData.weight), Number(formData.height), Number(formData.age), formData.gender === Gender.MALE),
+    idealWeight: calculateIdealWeight(Number(formData.height), formData.gender === Gender.MALE),
   } : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,7 +69,7 @@ export const Profile: React.FC = () => {
         height: Number(formData.height) || undefined,
         weight: Number(formData.weight) || undefined,
         age: Number(formData.age) || undefined,
-        gender: formData.gender as 'male' | 'female',
+        gender: formData.gender,
         ...(formData.newPassword && {
           password: await hashPassword(formData.newPassword),
         }),
@@ -71,7 +84,7 @@ export const Profile: React.FC = () => {
           height: Number(formData.height) || undefined,
           weight: Number(formData.weight) || undefined,
           age: Number(formData.age) || undefined,
-          gender: formData.gender as 'male' | 'female',
+          gender: formData.gender,
         } 
       });
       setSuccess('Profile updated successfully');
@@ -119,7 +132,7 @@ export const Profile: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm text-gray-400">Gender</h3>
-                  <p className="text-white text-lg">{formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1)}</p>
+                  <p className="text-white text-lg">{formData.gender}</p>
                 </div>
                 <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
               </div>
@@ -165,11 +178,11 @@ export const Profile: React.FC = () => {
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
                     className="w-full px-4 py-2 bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg text-white"
                   >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value={Gender.MALE}>Male</option>
+                    <option value={Gender.FEMALE}>Female</option>
                   </select>
                 </div>
 

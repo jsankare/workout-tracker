@@ -4,7 +4,7 @@ import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { ExerciseForm } from '../components/exercises/ExerciseForm';
-import { Exercise, ExerciseType } from '../types/exercise';
+import { Exercise, ExerciseType, MuscleGroup, Muscle } from '../types/exercise';
 import { db } from '../lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,12 +22,19 @@ export const Exercises: React.FC = () => {
   const loadExercises = async () => {
     const database = await db;
     const allExercises = await database.getAll('exercises') || [];
-    setExercises(allExercises);
+    // Ensure the exercises from DB match the Exercise type
+    const typedExercises: Exercise[] = allExercises.map(exercise => ({
+      ...exercise,
+      type: exercise.type as ExerciseType,
+      muscleGroups: exercise.muscleGroups.map(group => group as MuscleGroup),
+      muscles: exercise.muscles.map(muscle => muscle as Muscle),
+    }));
+    setExercises(typedExercises);
   };
 
   const handleCreateExercise = async (exerciseData: Omit<Exercise, 'id'>) => {
     const database = await db;
-    const exercise = {
+    const exercise: Exercise = {
       ...exerciseData,
       id: uuidv4(),
     };
@@ -39,7 +46,7 @@ export const Exercises: React.FC = () => {
   const handleEditExercise = async (exerciseData: Omit<Exercise, 'id'>) => {
     if (!editingExercise) return;
     const database = await db;
-    const updatedExercise = {
+    const updatedExercise: Exercise = {
       ...exerciseData,
       id: editingExercise.id,
     };
