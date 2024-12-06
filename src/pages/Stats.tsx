@@ -6,33 +6,38 @@ import { calculateWorkoutStats } from '../utils/statsCalculator';
 import PersonalStatsForm from '../components/stats/PersonalStatsForm';
 import StatsOverview from '../components/stats/StatsOverview';
 import WorkoutStatsOverview from '../components/stats/WorkoutStatsOverview';
+import ImportExportSection from '../components/stats/ImportExportSection';
 
 export default function Stats() {
   const [personalStats, setPersonalStats] = useState<PersonalStats[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [workoutStats, setWorkoutStats] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadStats();
-  }, []);
+  const [exercises, setExercises] = useState([]);
+  const [workouts, setWorkouts] = useState([]);
 
   async function loadStats() {
     try {
-      const [stats, workouts, exercises] = await Promise.all([
+      const [stats, workoutsData, exercisesData] = await Promise.all([
         getAllPersonalStats(),
         getAllWorkouts(),
         getAllExercises(),
       ]);
       
       setPersonalStats(stats.sort((a, b) => b.createdAt - a.createdAt));
-      setWorkoutStats(calculateWorkoutStats(workouts, exercises));
+      setWorkouts(workoutsData);
+      setExercises(exercisesData);
+      setWorkoutStats(calculateWorkoutStats(workoutsData, exercisesData));
       setLoading(false);
     } catch (error) {
       console.error('Failed to load stats:', error);
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   const handleSubmit = async (statsData: Omit<PersonalStats, 'id' | 'createdAt'>) => {
     try {
@@ -79,27 +84,36 @@ export default function Stats() {
         </div>
       )}
 
-      {personalStats.length > 0 && (
-        <>
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Personal Stats</h2>
-            <StatsOverview latestStats={personalStats[0]} />
-          </div>
+      <div className="space-y-8">
+        <ImportExportSection
+          exercises={exercises}
+          workouts={workouts}
+          personalStats={personalStats}
+          onImportComplete={loadStats}
+        />
 
-          {workoutStats && (
+        {personalStats.length > 0 && (
+          <>
             <div>
-              <h2 className="text-xl font-semibold mb-4">Workout Stats</h2>
-              <WorkoutStatsOverview stats={workoutStats} />
+              <h2 className="text-xl font-semibold mb-4">Personal Stats</h2>
+              <StatsOverview latestStats={personalStats[0]} />
             </div>
-          )}
-        </>
-      )}
 
-      {personalStats.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          No personal stats recorded yet. Click "Update Stats" to get started.
-        </div>
-      )}
+            {workoutStats && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Workout Stats</h2>
+                <WorkoutStatsOverview stats={workoutStats} />
+              </div>
+            )}
+          </>
+        )}
+
+        {personalStats.length === 0 && (
+          <div className="text-center py-12 text-gray-400">
+            No personal stats recorded yet. Click "Update Stats" to get started.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
