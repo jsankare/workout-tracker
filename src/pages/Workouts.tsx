@@ -1,15 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Copy } from 'lucide-react';
 import { Workout } from '../types/workout';
 import { getAllWorkouts, addWorkout, updateWorkout, deleteWorkout } from '../utils/db';
+import { filterWorkouts, sortWorkouts } from '../utils/filters';
 import WorkoutCard from '../components/workouts/WorkoutCard';
 import WorkoutForm from '../components/workouts/WorkoutForm';
+import FilterBar from '../components/common/FilterBar';
 
 export default function Workouts() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    dateRange: { start: '', end: '' },
+    hasNotes: undefined as boolean | undefined,
+  });
+  const [sortBy, setSortBy] = useState('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     loadWorkouts();
@@ -18,19 +26,11 @@ export default function Workouts() {
   async function loadWorkouts() {
     try {
       const data = await getAllWorkouts();
-      setWorkouts(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setWorkouts(data);
     } catch (error) {
       console.error('Failed to load workouts:', error);
     }
   }
-
-  const filteredWorkouts = workouts.filter((workout) =>
-    workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    workout.exercises.some(exercise => 
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
 
   const handleSubmit = async (workoutData: Omit<Workout, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -74,6 +74,38 @@ export default function Workouts() {
     }
   };
 
+  const handleDuplicate = async (workout: Workout) => {
+    const newWorkout: Workout = {
+      ...workout,
+      id: crypto.randomUUID(),
+      name: `${workout.name} (Copy)`,
+      date: new Date().toISOString().split('T')[0],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    try {
+      await addWorkout(newWorkout);
+      await loadWorkouts();
+    } catch (error) {
+      console.error('Failed to duplicate workout:', error);
+    }
+  };
+
+  const filteredWorkouts = sortWorkouts(
+    filterWorkouts(
+      workouts.filter((workout) =>
+        workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workout.exercises.some(exercise => 
+          exercise.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      ),
+      filters
+    ),
+    sortBy,
+    sortDirection
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -98,6 +130,32 @@ export default function Workouts() {
         <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
       </div>
 
+      <FilterBar
+        filters={[
+          {
+            label: 'Has Notes',
+            value: filters.hasNotes?.toString() ?? '',
+            options: [
+              { label: 'Yes', value: 'true' },
+              { label: 'No', value: 'false' },
+            ],
+            onChange: (value) => setFilters({
+              ...filters,
+              hasNotes: value === '' ? undefined : value === 'true'
+            }),
+          },
+        ]}
+        sortOptions={[
+          { label: 'Sort by Date', value: 'date' },
+          { label: 'Sort by Name', value: 'name' },
+          { label: 'Sort by Exercises', value: 'exercises' },
+        ]}
+        currentSort={sortBy}
+        sortDirection={sortDirection}
+        onSortChange={setSortBy}
+        onSortDirectionChange={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+      />
+
       {showForm && (
         <div className="mb-8">
           <WorkoutForm
@@ -118,13 +176,16 @@ export default function Workouts() {
             workout={workout}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onDuplicate={() => handleDuplicate(workout)}
           />
         ))}
       </div>
 
       {filteredWorkouts.length === 0 && (
         <div className="text-center py-12 text-gray-400">
-          {searchTerm ? 'No workouts found matching your search.' : 'No workouts logged yet.'}
+          {searchTerm || filters.hasNotes !== undefined
+            ? 'No workouts found matching your criteria.'
+            : 'No workouts logged yet.'}
         </div>
       )}
     </div>

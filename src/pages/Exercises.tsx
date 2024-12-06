@@ -2,14 +2,23 @@ import { useState, useEffect } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Exercise } from '../types/exercise';
 import { getAllExercises, addExercise, updateExercise, deleteExercise } from '../utils/db';
+import { filterExercises, sortExercises } from '../utils/filters';
 import ExerciseCard from '../components/exercises/ExerciseCard';
 import ExerciseForm from '../components/exercises/ExerciseForm';
+import FilterBar from '../components/common/FilterBar';
 
 export default function Exercises() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    category: '',
+    muscleGroup: '',
+    muscle: '',
+  });
+  const [sortBy, setSortBy] = useState('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     loadExercises();
@@ -23,14 +32,6 @@ export default function Exercises() {
       console.error('Failed to load exercises:', error);
     }
   }
-
-  const filteredExercises = exercises.filter((exercise) =>
-    exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    exercise.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    exercise.muscleGroups.some(group => group.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    exercise.muscles.some(muscle => muscle.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    exercise.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (exerciseData: Omit<Exercise, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -74,6 +75,18 @@ export default function Exercises() {
     }
   };
 
+  const filteredExercises = sortExercises(
+    filterExercises(
+      exercises.filter((exercise) =>
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+      filters
+    ),
+    sortBy,
+    sortDirection
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -97,6 +110,47 @@ export default function Exercises() {
         />
         <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
       </div>
+
+      <FilterBar
+        filters={[
+          {
+            label: 'Category',
+            value: filters.category,
+            options: [
+              { label: 'Strength', value: 'Strength' },
+              { label: 'Cardio', value: 'Cardio' },
+              { label: 'Flexibility', value: 'Flexibility' },
+              { label: 'Balance', value: 'Balance' },
+              { label: 'Power', value: 'Power' },
+              { label: 'Endurance', value: 'Endurance' },
+            ],
+            onChange: (value) => setFilters({ ...filters, category: value }),
+          },
+          {
+            label: 'Muscle Group',
+            value: filters.muscleGroup,
+            options: [
+              { label: 'Chest', value: 'Chest' },
+              { label: 'Back', value: 'Back' },
+              { label: 'Shoulders', value: 'Shoulders' },
+              { label: 'Arms', value: 'Arms' },
+              { label: 'Legs', value: 'Legs' },
+              { label: 'Core', value: 'Core' },
+              { label: 'Full Body', value: 'Full Body' },
+            ],
+            onChange: (value) => setFilters({ ...filters, muscleGroup: value }),
+          },
+        ]}
+        sortOptions={[
+          { label: 'Sort by Name', value: 'name' },
+          { label: 'Sort by Category', value: 'category' },
+          { label: 'Sort by Date Added', value: 'date' },
+        ]}
+        currentSort={sortBy}
+        sortDirection={sortDirection}
+        onSortChange={setSortBy}
+        onSortDirectionChange={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+      />
 
       {showForm && (
         <div className="mb-8">
@@ -124,7 +178,9 @@ export default function Exercises() {
 
       {filteredExercises.length === 0 && (
         <div className="text-center py-12 text-gray-400">
-          {searchTerm ? 'No exercises found matching your search.' : 'No exercises added yet.'}
+          {searchTerm || filters.category || filters.muscleGroup
+            ? 'No exercises found matching your criteria.'
+            : 'No exercises added yet.'}
         </div>
       )}
     </div>

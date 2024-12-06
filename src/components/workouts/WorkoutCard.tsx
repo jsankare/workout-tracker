@@ -1,15 +1,16 @@
 import { Exercise } from '../../types/exercise';
 import { Workout } from '../../types/workout';
-import { Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit, Trash2, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { useState } from 'react';
 
 interface WorkoutCardProps {
   workout: Workout;
   onEdit: (workout: Workout) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (workout: Workout) => void;
 }
 
-export default function WorkoutCard({ workout, onEdit, onDelete }: WorkoutCardProps) {
+export default function WorkoutCard({ workout, onEdit, onDelete, onDuplicate }: WorkoutCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const formatDate = (dateStr: string) => {
@@ -34,6 +35,13 @@ export default function WorkoutCard({ workout, onEdit, onDelete }: WorkoutCardPr
           <p className="text-gray-400">{formatDate(workout.date)}</p>
         </div>
         <div className="flex space-x-2">
+          <button
+            onClick={() => onDuplicate(workout)}
+            className="p-2 hover:bg-gray-700 rounded-full transition-colors text-yellow-500"
+            title="Duplicate workout"
+          >
+            <Copy size={18} />
+          </button>
           <button
             onClick={() => onEdit(workout)}
             className="p-2 hover:bg-gray-700 rounded-full transition-colors"

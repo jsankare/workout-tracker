@@ -3,6 +3,7 @@ import Navbar from './components/layout/Navbar';
 import Home from './pages/Home';
 import Exercises from './pages/Exercises';
 import Workouts from './pages/Workouts';
+import Stats from './pages/Stats';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/exercises" element={<Exercises />} />
             <Route path="/workouts" element={<Workouts />} />
+            <Route path="/stats" element={<Stats />} />
           </Routes>
         </main>
       </div>
