@@ -1,56 +1,22 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Landing } from './pages/Landing';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Dashboard } from './pages/Dashboard';
-import { Stats } from './pages/Stats';
-import { Profile } from './pages/Profile';
-import { Exercises } from './pages/Exercises';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import Navbar from './components/layout/Navbar';
+import Home from './pages/Home';
+import Exercises from './pages/Exercises';
+import Workouts from './pages/Workouts';
 
-export const App: React.FC = () => {
+export default function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/exercises"
-          element={
-            <ProtectedRoute>
-              <Exercises />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/stats"
-          element={
-            <ProtectedRoute>
-              <Stats />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+      <div className="min-h-screen bg-gray-900 text-white">
+        <Navbar />
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/exercises" element={<Exercises />} />
+            <Route path="/workouts" element={<Workouts />} />
+          </Routes>
+        </main>
+      </div>
     </Router>
   );
-};
-
-export default App;
+}

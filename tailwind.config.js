@@ -4,13 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#FF6B35',
-        background: '#121212',
-        surface: '#2A2A2A',
-        'surface-light': '#3A3A3A',
+        primary: '#FFD700', // Gold accent
+        secondary: '#1a1a1a', // Dark gray
       },
       fontFamily: {
-        sans: ['Inter var', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

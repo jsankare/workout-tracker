@@ -1,41 +1,40 @@
-export enum ExerciseType {
-  CARDIO = 'cardio',
-  STRENGTH = 'strength',
-  STRETCHING = 'stretching',
-  BODYWEIGHT = 'bodyweight',
-  HIIT = 'hiit'
-}
+export type MuscleGroup = 
+  | 'Chest'
+  | 'Back'
+  | 'Shoulders'
+  | 'Arms'
+  | 'Legs'
+  | 'Core'
+  | 'Full Body';
 
-export enum MuscleGroup {
-  CHEST = 'chest',
-  BACK = 'back',
-  SHOULDERS = 'shoulders',
-  ARMS = 'arms',
-  LEGS = 'legs',
-  CORE = 'core'
-}
+export type Muscle = 
+  | 'Pectoralis'
+  | 'Latissimus'
+  | 'Deltoids'
+  | 'Biceps'
+  | 'Triceps'
+  | 'Quadriceps'
+  | 'Hamstrings'
+  | 'Calves'
+  | 'Abdominals'
+  | 'Trapezius'
+  | 'Rhomboids';
 
-export enum Muscle {
-  PECTORALIS = 'pectoralis',
-  DELTOIDS = 'deltoids',
-  BICEPS = 'biceps',
-  TRICEPS = 'triceps',
-  LATISSIMUS = 'latissimus',
-  TRAPEZIUS = 'trapezius',
-  QUADRICEPS = 'quadriceps',
-  HAMSTRINGS = 'hamstrings',
-  CALVES = 'calves',
-  ABDOMINALS = 'abdominals',
-  OBLIQUES = 'obliques'
-}
+export type Category = 
+  | 'Strength'
+  | 'Cardio'
+  | 'Flexibility'
+  | 'Balance'
+  | 'Power'
+  | 'Endurance';
 
 export interface Exercise {
   id: string;
   name: string;
-  type: ExerciseType;
+  description?: string;
   muscleGroups: MuscleGroup[];
   muscles: Muscle[];
-  description?: string;
-  instructions?: string;
-  caloriesPerMinute?: number;
+  category: Category;
+  createdAt: number;
+  updatedAt: number;
 }

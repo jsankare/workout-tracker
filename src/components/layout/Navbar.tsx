@@ -1,47 +1,74 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { BarChart2, User, LogOut, Dumbbell, ListChecks } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { Menu, X, Dumbbell, Calendar, BarChart3, Home } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
-export const Navbar: React.FC = () => {
-  const { logout } = useAuthStore();
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   const navItems = [
-    { to: '/dashboard', icon: ListChecks, label: 'Workouts' },
-    { to: '/exercises', icon: Dumbbell, label: 'Exercises' },
-    { to: '/stats', icon: BarChart2, label: 'Stats' },
-    { to: '/profile', icon: User, label: 'Profile' },
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/exercises', icon: Dumbbell, label: 'Exercises' },
+    { path: '/workouts', icon: Calendar, label: 'Workouts' },
+    { path: '/stats', icon: BarChart3, label: 'Stats' },
   ];
 
   return (
-    <nav className="bg-surface fixed bottom-0 left-0 w-full md:w-20 md:h-screen md:top-0">
-      <div className="flex md:flex-col justify-around md:justify-start items-center h-full py-2 md:py-8">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `p-3 rounded-lg transition-colors ${
-                isActive ? 'text-primary bg-surface-light' : 'text-gray-400 hover:text-primary hover:bg-surface-light'
-              }`
-            }
+    <nav className="bg-black text-white">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between h-16 items-center">
+          <Link to="/" className="font-bold text-xl">MALI WARRIOR</Link>
+          
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden"
           >
-            <div className="flex flex-col items-center">
-              <Icon className="w-6 h-6" />
-              <span className="text-xs mt-1 md:hidden">{label}</span>
-            </div>
-          </NavLink>
-        ))}
-        <button
-          onClick={logout}
-          className="p-3 text-gray-400 hover:text-red-400 hover:bg-surface-light rounded-lg transition-colors mt-auto"
-        >
-          <div className="flex flex-col items-center">
-            <LogOut className="w-6 h-6" />
-            <span className="text-xs mt-1 md:hidden">Logout</span>
+            {isOpen ? <X /> : <Menu />}
+          </button>
+
+          {/* Desktop menu */}
+          <div className="hidden md:flex space-x-8">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center space-x-2 hover:text-yellow-500 transition-colors
+                    ${location.pathname === item.path ? 'text-yellow-500' : ''}`}
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
-        </button>
+        </div>
+
+        {/* Mobile menu */}
+        {isOpen && (
+          <div className="md:hidden">
+            <div className="flex flex-col space-y-4 pb-4">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center space-x-2 hover:text-yellow-500 transition-colors
+                      ${location.pathname === item.path ? 'text-yellow-500' : ''}`}
+                  >
+                    <Icon size={20} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
-};
+}
