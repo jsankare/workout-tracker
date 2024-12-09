@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIndexedDB } from '@/lib/hooks/use-indexeddb';
+import { useTemplateExercises } from '@/lib/hooks/use-template-exercises';
 import { Exercise } from '@/lib/types/exercise';
 import { ExerciseList } from '@/components/exercises/exercise-list';
 import { ExerciseForm } from '@/components/exercises/exercise-form';
@@ -11,7 +12,8 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function ExercisesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const { data: exercises, loading, addItem } = useIndexedDB<Exercise[]>('exercises');
+  const { exercises, loading } = useTemplateExercises();
+  const { addItem } = useIndexedDB<Exercise[]>('exercises');
   const { toast } = useToast();
 
   const handleAddExercise = async (exercise: Exercise) => {

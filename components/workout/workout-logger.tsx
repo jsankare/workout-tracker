@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIndexedDB } from '@/lib/hooks/use-indexeddb';
 import { useToast } from '@/components/ui/use-toast';
 import { Timer } from '@/components/workout/timer';
-import { Play, Pause, Plus, Save, X } from 'lucide-react';
+import { ExerciseSelector } from '@/components/workout/exercise-selector';
+import { Plus, Save, X, Trash2 } from 'lucide-react';
 import { generateWorkoutId } from '@/lib/utils/workout';
 
 interface WorkoutLoggerProps {
@@ -23,6 +24,7 @@ interface WorkoutLoggerProps {
 
 export function WorkoutLogger({ template, exercises, onCancel, onComplete }: WorkoutLoggerProps) {
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
+  const [isExerciseSelectorOpen, setIsExerciseSelectorOpen] = useState(false);
   const [workoutData, setWorkoutData] = useState<CompletedWorkout>({
     id: generateWorkoutId(),
     templateId: template.id || undefined,
@@ -61,6 +63,33 @@ export function WorkoutLogger({ template, exercises, onCancel, onComplete }: Wor
     sets[setIndex] = { ...sets[setIndex], [field]: value };
     newExercises[activeExerciseIndex] = { ...newExercises[activeExerciseIndex], sets };
     setWorkoutData({ ...workoutData, exercises: newExercises });
+  };
+
+  const handleAddExercise = (exercise: Exercise) => {
+    const newExercise: CompletedExercise = {
+      exerciseId: exercise.id,
+      sets: Array(exercise.defaultSets).fill({
+        reps: exercise.defaultReps,
+        weight: exercise.defaultWeight || 0,
+      }),
+      notes: '',
+    };
+    
+    setWorkoutData(prev => ({
+      ...prev,
+      exercises: [...prev.exercises, newExercise],
+    }));
+    setActiveExerciseIndex(workoutData.exercises.length);
+  };
+
+  const handleRemoveExercise = (index: number) => {
+    setWorkoutData(prev => ({
+      ...prev,
+      exercises: prev.exercises.filter((_, i) => i !== index),
+    }));
+    if (activeExerciseIndex >= index) {
+      setActiveExerciseIndex(Math.max(0, activeExerciseIndex - 1));
+    }
   };
 
   const handleComplete = async () => {
@@ -115,14 +144,16 @@ export function WorkoutLogger({ template, exercises, onCancel, onComplete }: Wor
                       <div className="w-16">
                         <Label>Set {index + 1}</Label>
                       </div>
-                      <div className="w-24">
-                        <Label>Weight</Label>
-                        <Input
-                          type="number"
-                          value={set.weight}
-                          onChange={(e) => handleSetUpdate(index, 'weight', Number(e.target.value))}
-                        />
-                      </div>
+                      {activeExerciseDetails.isWeighted && (
+                        <div className="w-24">
+                          <Label>Weight ({activeExerciseDetails.weightUnit})</Label>
+                          <Input
+                            type="number"
+                            value={set.weight}
+                            onChange={(e) => handleSetUpdate(index, 'weight', Number(e.target.value))}
+                          />
+                        </div>
+                      )}
                       <div className="w-24">
                         <Label>Reps</Label>
                         <Input
@@ -142,21 +173,37 @@ export function WorkoutLogger({ template, exercises, onCancel, onComplete }: Wor
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Exercises</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Exercises</CardTitle>
+                <Button size="sm" onClick={() => setIsExerciseSelectorOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {workoutData.exercises.map((exercise, index) => {
                   const details = exerciseMap.get(exercise.exerciseId);
                   return (
-                    <Button
+                    <div
                       key={index}
-                      variant={index === activeExerciseIndex ? 'default' : 'outline'}
-                      className="w-full justify-start"
-                      onClick={() => setActiveExerciseIndex(index)}
+                      className="flex items-center gap-2"
                     >
-                      {details?.name}
-                    </Button>
+                      <Button
+                        variant={index === activeExerciseIndex ? 'default' : 'outline'}
+                        className="flex-1 justify-start"
+                        onClick={() => setActiveExerciseIndex(index)}
+                      >
+                        {details?.name}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveExercise(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   );
                 })}
               </div>
@@ -182,6 +229,13 @@ export function WorkoutLogger({ template, exercises, onCancel, onComplete }: Wor
           </div>
         </div>
       </div>
+
+      <ExerciseSelector
+        open={isExerciseSelectorOpen}
+        onOpenChange={setIsExerciseSelectorOpen}
+        exercises={exercises}
+        onSelect={handleAddExercise}
+      />
     </div>
   );
 }

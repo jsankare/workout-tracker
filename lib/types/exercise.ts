@@ -10,6 +10,9 @@ export interface Exercise {
   defaultSets: number;
   defaultReps: number;
   defaultDuration: number;
+  defaultWeight?: number;
+  weightUnit?: 'kg' | 'lbs';
+  isWeighted?: boolean;
 }
 
 export const MUSCLE_GROUPS = [
@@ -33,3 +36,5 @@ export const EQUIPMENT_OPTIONS = [
   'Cable',
   'Other',
 ] as const;
+
+export const WEIGHT_UNITS = ['kg', 'lbs'] as const;
